@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Generator Password - Cyber</title>
+  <style>
+    *{box-sizing:border-box}
+    :root{
+      --bg0:#05060a;
+      --bg1:#070a12;
+      --card: rgba(8, 10, 18, .62);
+      --stroke: rgba(120, 255, 255, .18);
+      --text: #eaffff;
+      --muted: rgba(234,255,255,.68);
+      --neon: #58f6ff;
+      --neon2:#a855ff;
+      --neon3:#00ff9a;
+    }
+
+    body{
+      margin:0; min-height:100vh;
+      display:flex; align-items:center; justify-content:center;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      overflow:hidden;
+
+      /* === Background image (clear, no blur) === */
+      background: url("https://i.postimg.cc/Dz1TZH81/image.png") center center / cover no-repeat fixed;
+      image-rendering: auto;
+    }
+
+    /* Optional: subtle dark overlay so UI tetap kebaca */
+    body::before{
+      content:"";
+      position:fixed; inset:0;
+      background: radial-gradient(1200px 800px at 50% 55%, rgba(0,0,0,.35), rgba(0,0,0,.60));
+      pointer-events:none;
+      z-index:0;
+    }
+
+    /* Animated neon grid */
+    .grid{
+      position:fixed; inset:-20%;
+      background:
+        linear-gradient(to right, rgba(88,246,255,.10) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(88,246,255,.08) 1px, transparent 1px);
+      background-size: 54px 54px;
+      transform: perspective(900px) rotateX(62deg) translateY(140px);
+      opacity:.18;
+      filter: blur(.2px);
+      animation: gridMove 6.5s linear infinite;
+      pointer-events:none;
+      z-index:1;
+    }
+    @keyframes gridMove{
+      from{ background-position: 0 0, 0 0; }
+      to{ background-position: 0 120px, 0 120px; }
+    }
+
+    /* Scanlines */
+    .scan{
+      position:fixed; inset:0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.04) 0px,
+        rgba(255,255,255,0) 7px,
+        rgba(255,255,255,0) 14px
+      );
+      opacity:.10;
+      mix-blend-mode: overlay;
+      pointer-events:none;
+      z-index:2;
+      animation: scanMove 4.8s linear infinite;
+    }
+    @keyframes scanMove{
+      from{ background-position: 0 0; }
+      to{ background-position: 0 120px; }
+    }
+
+    /* Neon particles */
+    #fx{
+      position:fixed; inset:0;
+      pointer-events:none;
+      z-index:2;
+      opacity:.9;
+    }
+
+    /* Falling flowers canvas */
+    #petals{
+      position:fixed; inset:0;
+      pointer-events:none;
+      z-index:2;
+      opacity:.95;
+    }
+
+    /* Card */
+    .container{
+      width:100%;
+      max-width:560px;
+      padding:18px;
+      border-radius:22px;
+      background: var(--card);
+      border:1px solid var(--stroke);
+      box-shadow:
+        0 28px 90px rgba(0,0,0,.70),
+        0 0 55px rgba(88,246,255,.12),
+        inset 0 0 28px rgba(255,255,255,.06);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position:relative;
+      overflow:hidden;
+      z-index:3;
+    }
+
+    /* Neon edge glow */
+    .container::before{
+      content:"";
+      position:absolute; inset:-2px;
+      border-radius:24px;
+      background:
+        radial-gradient(600px 220px at 20% 10%, rgba(88,246,255,.25), transparent 60%),
+        radial-gradient(520px 220px at 80% 80%, rgba(168,85,255,.20), transparent 60%);
+      filter: blur(14px);
+      opacity:.75;
+      pointer-events:none;
+      z-index:0;
+    }
+
+    /* Animated sheen */
+    .container::after{
+      content:"";
+      position:absolute; inset:-40% -20%;
+      background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.10) 45%, transparent 60%);
+      transform: rotate(12deg);
+      animation: sheen 7.6s linear infinite;
+      opacity:.75;
+      pointer-events:none;
+      z-index:0;
+    }
+    @keyframes sheen{
+      from{ transform: translateX(-35%) rotate(12deg); }
+      to{ transform: translateX(35%) rotate(12deg); }
+    }
+
+    .header{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; margin-bottom:10px;
+      position:relative; z-index:2;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; min-width:0; }
+    .badge{
+      width:40px; height:40px;
+      border-radius:16px;
+      display:grid; place-items:center;
+      background: rgba(88,246,255,.10);
+      border:1px solid rgba(88,246,255,.22);
+      box-shadow: 0 0 26px rgba(88,246,255,.14);
+      flex:0 0 auto;
+    }
+    .badge span{
+      font-size:18px;
+      filter: drop-shadow(0 0 10px rgba(88,246,255,.25));
+    }
+    .title{ min-width:0; line-height:1.1; }
+    .title .small{
+      font-size:11px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color: var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .title h1{
+      margin:6px 0 0;
+      font-size:16px;
+      color: var(--neon);
+      text-shadow: 0 0 18px rgba(88,246,255,.18);
+    }
+    .pill{
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(230,255,255,.85);
+      white-space:nowrap;
+      flex:0 0 auto;
+    }
+
+    textarea{
+      width:100%;
+      border-radius:14px;
+      padding:14px;
+      resize:none;
+      outline:none;
+      color: var(--text);
+      background: rgba(6, 8, 16, .70);
+      border: 1px solid rgba(88,246,255,.22);
+      transition: .18s ease;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      position:relative;
+      z-index:2;
+      box-shadow: 0 0 0 0 rgba(88,246,255,0);
+    }
+    textarea:focus{
+      border-color: rgba(88,246,255,.38);
+      box-shadow: 0 0 0 7px rgba(88,246,255,.10);
+      transform: translateY(-1px);
+    }
+    #idInput{
+      height:92px;
+      margin-bottom:12px;
+      font-size:38px;
+      text-align:center;
+      letter-spacing:.04em;
+    }
+    #result{
+      height:310px;
+      font-size:16px;
+      cursor:pointer;
+      position:relative;
+    }
+    #result.glow{ animation:glow .65s; }
+    @keyframes glow{
+      0%{ box-shadow:0 0 0 rgba(88,246,255,0); }
+      50%{ box-shadow:0 0 44px rgba(88,246,255,.28); }
+      100%{ box-shadow:0 0 0 rgba(88,246,255,0); }
+    }
+
+    .copied{
+      position:absolute;
+      top:14px; right:14px;
+      background: rgba(10, 210, 255, .18);
+      border: 1px solid rgba(88,246,255,.28);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 800;
+      display:none;
+      z-index:3;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      letter-spacing:.06em;
+      box-shadow: 0 16px 40px rgba(0,0,0,.35);
+      color: var(--neon3);
+      text-shadow: 0 0 18px rgba(0,255,154,.22);
+    }
+    .copied.show{ display:block; }
+
+    @media (max-width:520px){
+      #idInput{ font-size:30px; }
+      .pill{ display:none; }
+      .title h1{ font-size:14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grid"></div>
+  <div class="scan"></div>
+  <canvas id="fx"></canvas>
+  <canvas id="petals"></canvas>
+
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="badge"><span>⚡</span></div>
+        <div class="title">
+          <div class="small">CYBER PASSWORD GENERATOR</div>
+          <h1>ENTER = Generate • Klik hasil = Copy</h1>
+        </div>
+      </div>
+      <div class="pill">Neon / Cyber</div>
+    </div>
+
+    <textarea id="idInput" placeholder="TEMPEL ID DI SINI"></textarea>
+
+    <div style="position:relative">
+      <textarea id="result" readonly placeholder="HASIL GENERATOR"></textarea>
+      <div id="copied" class="copied">TERCOPY ✅</div>
+    </div>
+  </div>
+
+  <script>
+    // ====== (TETAP) Password logic kamu - tidak diubah ======
+    const colors=["merah","hitam","biru","hijau","kuning"];
+    const objects=["meja","kursi","lampu","lemari","sepatu"];
+    const animals=["kucing","harimau","elang","singa","ular"];
+    const countries=["indonesia","jepang","korea","italy","spanyol"];
+    const cities=["jakarta","bandung","surabaya","medan","makassar"];
+
+    const rnd=n=>Math.floor(Math.random()*n);
+    const randNum=l=>Math.floor(Math.random()*10**l).toString().padStart(l,'0');
+    const randLetters=l=>Array.from({length:l},()=>String.fromCharCode(97+rnd(26))).join('');
+
+    function safeId(id){ return (id.toLowerCase()+"xxxx").slice(0,4); }
+    function ensureLength(txt){
+      if(txt.length < 8){ return txt + randNum(8 - txt.length); }
+      if(txt.length > 10){ return txt.slice(0,10); }
+      return txt;
+    }
+    function generate(id){
+      const id4 = safeId(id);
+      const list = [
+        () => id4 + randNum(4),
+        () => objects[rnd(objects.length)] + randNum(3),
+        () => colors[rnd(colors.length)] + randNum(3),
+        () => countries[rnd(countries.length)] + randNum(3),
+        () => cities[rnd(cities.length)] + randNum(3),
+        () => animals[rnd(animals.length)] + randNum(3),
+        () => randLetters(4) + randNum(4),
+        () => randNum(4) + randLetters(4)
+      ];
+      return ensureLength(list[rnd(list.length)]());
+    }
+
+    const idInput=document.getElementById("idInput");
+    const result=document.getElementById("result");
+    const copied=document.getElementById("copied");
+
+    idInput.addEventListener("keydown",e=>{
+      if(e.key==="Enter"){
+        e.preventDefault();
+        const id=idInput.value.trim();
+        if(!id) return;
+
+        const pass=generate(id);
+
+        result.value=
+`USERNAME : ${id}
+
+PASSWORD : ${pass}
+
+𝗡𝗢𝗧𝗘 : 𝘀𝗲𝗴𝗲𝗿𝗮 𝗴𝗮𝗻𝘁𝗶 𝗸𝗲𝗺𝗯𝗮𝗹𝗶 𝗽𝗮𝘀𝘀𝘄𝗼𝗿𝗱 𝗮𝗻𝗱𝗮 𝘂𝗻𝘁𝘂𝗸 𝗺𝗲𝗻𝗷𝗮𝗴𝗮 𝗽𝗿𝗶𝘃𝗮𝘀𝗶 𝗮𝗸𝘂𝗻 𝗮𝗻𝗱𝗮 𝘆𝗮 𝗯𝗼𝘀𝗸𝘂
+
+LINK DOWNLOAD APK >> https://asiap.me/apkmawar
+💥 freechip Rp. 5.000 untuk download APK MAWARTOTO 💥`;
+      }
+    });
+
+    result.addEventListener("click",()=>{
+      if(!result.value) return;
+      navigator.clipboard.writeText(result.value);
+      result.classList.add("glow");
+      copied.classList.add("show");
+
+      setTimeout(()=>{
+        result.classList.remove("glow");
+        copied.classList.remove("show");
+        idInput.value="";
+        result.value="";
+      },800);
+    });
+
+    // ====== Cyber background FX (particles) ======
+    (function fx(){
+      const canvas = document.getElementById("fx");
+      const ctx = canvas.getContext("2d");
+      let w=0,h=0,dpr=1;
+      const pts=[];
+      function resize(){
+        dpr = window.devicePixelRatio || 1;
+        w = window.innerWidth; h = window.innerHeight;
+        canvas.width = Math.floor(w*dpr);
+        canvas.height = Math.floor(h*dpr);
+        canvas.style.width = w+"px";
+        canvas.style.height = h+"px";
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      const colors = [
+        [88,246,255],
+        [168,85,255],
+        [0,255,154]
+      ];
+
+      for(let i=0;i<140;i++){
+        const c = colors[Math.floor(Math.random()*colors.length)];
+        pts.push({
+          x: Math.random()*w,
+          y: Math.random()*h,
+          r: 0.7 + Math.random()*2.2,
+          vx: (-0.25 + Math.random()*0.5),
+          vy: (-0.15 + Math.random()*0.3),
+          a: 0.10 + Math.random()*0.35,
+          c
+        });
+      }
+
+      function step(){
+        ctx.clearRect(0,0,w,h);
+
+        // faint vignette glow
+        const g = ctx.createRadialGradient(w*0.5,h*0.5, 0, w*0.5,h*0.5, Math.max(w,h)*0.6);
+        g.addColorStop(0,"rgba(88,246,255,0.05)");
+        g.addColorStop(1,"rgba(0,0,0,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0,0,w,h);
+
+        for(const p of pts){
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if(p.x < -50) p.x = w+50;
+          if(p.x > w+50) p.x = -50;
+          if(p.y < -50) p.y = h+50;
+          if(p.y > h+50) p.y = -50;
+
+          const alpha = p.a;
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(${p.c[0]},${p.c[1]},${p.c[2]},${alpha})`;
+          ctx.shadowColor = `rgba(${p.c[0]},${p.c[1]},${p.c[2]},${alpha})`;
+          ctx.shadowBlur = 16;
+          ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+          ctx.fill();
+        }
+
+        requestAnimationFrame(step);
+      }
+      step();
+    })();
+
+    // ====== Falling Flowers FX (keren) ======
+    (function petalsFx(){
+      const canvas = document.getElementById("petals");
+      const ctx = canvas.getContext("2d");
+
+      let w=0,h=0,dpr=1;
+      const petals=[];
+      const COUNT = 70;
+
+      function resize(){
+        dpr = window.devicePixelRatio || 1;
+        w = window.innerWidth; h = window.innerHeight;
+        canvas.width = Math.floor(w*dpr);
+        canvas.height = Math.floor(h*dpr);
+        canvas.style.width = w+"px";
+        canvas.style.height = h+"px";
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      const rnd=(a,b)=>a+Math.random()*(b-a);
+
+      function makePetal(yStart){
+        const big = Math.random() < 0.25;
+        const hueSet = Math.random() < 0.5 ? [255,180,205] : [255,225,235];
+        return {
+          x: rnd(0,w),
+          y: yStart ?? rnd(-h, 0),
+          s: rnd(big?1.2:0.7, big?2.2:1.6),
+          r: rnd(0, Math.PI*2),
+          vr: rnd(-0.03, 0.03),
+          vx: rnd(-0.45, 0.45),
+          vy: rnd(big?1.0:0.8, big?2.4:1.9),
+          sway: rnd(0.8, 2.6),
+          phase: rnd(0, Math.PI*2),
+          a: rnd(0.35, 0.9),
+          c: hueSet
+        };
+      }
+
+      for(let i=0;i<COUNT;i++) petals.push(makePetal(rnd(-h, h)));
+
+      function drawPetal(p, t){
+        ctx.save();
+        const swayX = Math.sin(t + p.phase) * 10 * (p.sway*0.12);
+        ctx.translate(p.x + swayX, p.y);
+        ctx.rotate(p.r);
+
+        const w0 = 12 * p.s;
+        const h0 = 18 * p.s;
+
+        // main petal body
+        const grad = ctx.createRadialGradient(-w0*0.15, -h0*0.15, 1, 0, 0, Math.max(w0,h0));
+        grad.addColorStop(0, `rgba(255,255,255,${p.a*0.55})`);
+        grad.addColorStop(1, `rgba(${p.c[0]},${p.c[1]},${p.c[2]},${p.a})`);
+
+        ctx.beginPath();
+        ctx.ellipse(0, 0, w0*0.55, h0*0.75, 0, 0, Math.PI*2);
+        ctx.fillStyle = grad;
+        ctx.shadowColor = `rgba(255,140,190,${Math.min(0.28,p.a)})`;
+        ctx.shadowBlur = 14;
+        ctx.fill();
+
+        // inner vein
+        ctx.beginPath();
+        ctx.moveTo(0, -h0*0.55);
+        ctx.quadraticCurveTo(w0*0.15, 0, 0, h0*0.55);
+        ctx.strokeStyle = `rgba(255,255,255,${p.a*0.35})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // small sparkle dot (sometimes)
+        if(Math.random() < 0.02){
+          ctx.beginPath();
+          ctx.arc(rnd(-6,6), rnd(-6,6), rnd(0.8,1.6), 0, Math.PI*2);
+          ctx.fillStyle = `rgba(255,255,255,${p.a*0.9})`;
+          ctx.shadowColor = `rgba(255,255,255,${p.a})`;
+          ctx.shadowBlur = 18;
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+
+      let t=0;
+      function step(){
+        ctx.clearRect(0,0,w,h);
+        t += 0.016;
+
+        for(let i=petals.length-1;i>=0;i--){
+          const p = petals[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.r += p.vr;
+
+          drawPetal(p, t);
+
+          if(p.y > h + 60 || p.x < -80 || p.x > w + 80){
+            petals.splice(i,1);
+            petals.push(makePetal(rnd(-140, -40)));
+          }
+        }
+
+        requestAnimationFrame(step);
+      }
+      step();
+    })();
+  </script>
+</body>
+</html>
